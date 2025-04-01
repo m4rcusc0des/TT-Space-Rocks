@@ -52,6 +52,60 @@
     <canvas></canvas>
 
     <script>
+        const criarElemento = (tag, atributos = {}, estilos = {}, eventos = {}) => {
+            const elemento = document.createElement(tag);
+            Object.entries(atributos).forEach(([key, value]) => elemento.setAttribute(key, value));
+            Object.entries(estilos).forEach(([key, value]) => (elemento.style[key] = value));
+            Object.entries(eventos).forEach(([key, func]) => elemento.addEventListener(key, func));
+            return elemento;
+        };
+
+        const iniciarJogo = () => {
+            document.getElementById("tela-inicial").style.display = "none";
+            jogoIniciado = true;
+            animate();
+        };
+
+        const criarTelaInicial = () => {
+            const telaInicial = criarElemento("div", { id: "tela-inicial" }, {
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                background: "black",
+                display: "flex",
+                justifyContent: "flex-start",
+                alignItems: "center",
+                flexDirection: "column",
+                paddingTop: "100px",
+            });
+
+            const titulo = criarElemento("img", { src: "imagens/titulo.png", alt: "Título do jogo" }, {
+                maxWidth: "80%",
+                maxHeight: "60%",
+            });
+
+            const botao = criarElemento(
+                "img",
+                { id: "start-btn", src: "imagens/botao.png", alt: "Botão Iniciar" },
+                {
+                    width: "200px",
+                    cursor: "pointer",
+                    transition: "transform 0.2s",
+                },
+                {
+                    click: iniciarJogo,
+                    mouseover: () => (botao.style.transform = "scale(1.1)"),
+                    mouseout: () => (botao.style.transform = "scale(1)"),
+                }
+            );
+
+            telaInicial.appendChild(titulo);
+            telaInicial.appendChild(botao);
+            document.body.appendChild(telaInicial);
+        };
+
+        criarTelaInicial();
+        
         let width = window.innerWidth;
         let height = window.innerHeight;
 
