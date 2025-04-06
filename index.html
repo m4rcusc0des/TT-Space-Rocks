@@ -1,241 +1,173 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TT Space Rocks</title>
-  <style>
-    * {
-            padding: 0;
-            margin: 0;
-            box-sizing: border-box;
-        }
-        body {
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            background: black;
-        }
-        #pontuacao {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white;
-            font-size: 24px;
-            font-family: Arial, sans-serif;
-            display: none;
-        }
-        #tela-inicial, #tela-game-over { /* css das telas inicial e de game over */
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            background: rgba(0, 0, 0, 0.9);
-        }
-        #tela-game-over { /* css especifico da game over, pra que não apareça no inicio */
-            display: none;
-        }
-        canvas { /* oculta o canvas para que apareça apenas a tela de inicio */
-            display: none;
-        }
-        .btn {
-            width: 200px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .btn:hover {
-            transform: scale(1.1);
-        }
-  </style>
-</head>
-<body>
-  <div id="pontuacao">Pontos: 0</div>
+<script>
+window.onload = function () {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const canvas = document.querySelector('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const c = canvas.getContext('2d');
 
-  <div id="tela-inicial">
-    <img src="./imagens/titulo.png" alt="Título do jogo"/>
-    <img id="start-btn" class="btn" src="./imagens/botao.png" alt="Botão Iniciar"/>
-  </div>
+  const naveImg = new Image();
+  naveImg.src = 'imagens/Spaceship-PNG-File.png';
+  const rochaImg = new Image();
+  rochaImg.src = 'imagens/stone_PNG13556.png';
 
-  <div id="tela-game-over">
-    <img src="./imagens/gameover.png" alt="Game Over"/>
-    <img id="restart-btn" class="btn" src="./imagens/botao.png" alt="Botão Reiniciar"/>
-  </div>
+  const atualizarPontuacao = (pontos) =>
+    (document.getElementById("pontuacao").innerText = `Pontos: ${pontos}`);
 
-  <canvas></canvas>
+  const iniciarJogo = () => {
+    document.getElementById("tela-inicial").style.display = "none";
+    document.getElementById("tela-game-over").style.display = "none";
+    canvas.style.display = "block";
+    document.getElementById("pontuacao").style.display = "block";
 
-  <script>
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const canvas = document.querySelector('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const c = canvas.getContext('2d');
-
-    const naveImg = new Image();
-    naveImg.src = './imagens/Spaceship-PNG-File.png';
-    const rochaImg = new Image();
-    rochaImg.src = './imagens/stone_PNG13556.png';
-
-    const atualizarPontuacao = (pontos) =>
-      (document.getElementById("pontuacao").innerText = Pontos: ${pontos});
-    
-    const iniciarJogo = () => {
-      document.getElementById("tela-inicial").style.display = "none";
-      document.getElementById("tela-game-over").style.display = "none";
-      canvas.style.display = "block";
-      document.getElementById("pontuacao").style.display = "block";
-
-      estadoGlobal.valor = {
-        nave: { x: width / 2 - 50, y: height - 100 },
-        rochas: criarRochas(),
-        tiros: [],
-        pontos: 0,
-        ativo: true
-      };
-
-      atualizarPontuacao(0);
-      animate();
-    };
-    
-    const mostrarGameOver = () => {
-      document.getElementById("tela-game-over").style.display = "flex";
-      canvas.style.display = "none";
-      document.getElementById("pontuacao").style.display = "none";
-    };
-    
-    const atirar = (estado) => {
-      estadoGlobal.valor = {
-        ...estado,
-        tiros: [
-          ...estado.tiros,
-          {
-            x: estado.nave.x + 45,
-            y: estado.nave.y - 20,
-            width: 10,
-            height: 20,
-            speed: 5
-          }
-        ]
-      };
+    estadoGlobal.valor = {
+      nave: { x: width / 2 - 50, y: height - 100 },
+      rochas: criarRochas(),
+      tiros: [],
+      pontos: 0,
+      ativo: true
     };
 
-    const animate = () => {
-      const estado = estadoGlobal.valor;
-      if (!estado.ativo) return;
+    atualizarPontuacao(0);
+    animate();
+  };
 
-      requestAnimationFrame(animate);
-      c.fillStyle = "black";
-      c.fillRect(0, 0, width, height);
+  const mostrarGameOver = () => {
+    document.getElementById("tela-game-over").style.display = "flex";
+    canvas.style.display = "none";
+    document.getElementById("pontuacao").style.display = "none";
+  };
 
-      c.drawImage(naveImg, estado.nave.x, estado.nave.y, 100, 100);
-
-      const novasRochas = estado.rochas.map((rocha) => {
-        const novaY = rocha.y + 2;
-        return novaY > height
-          ? { x: Math.random() * (width - 50), y: 0 }
-          : { ...rocha, y: novaY };
-      });
-
-      const novosTiros = estado.tiros
-        .map((tiro) => ({ ...tiro, y: tiro.y - tiro.speed }))
-        .filter((tiro) => tiro.y > 0);
-
-      const { tirosAtualizados, rochasAtualizadas, pontosGanho } = verificarColisoes(novosTiros, novasRochas);
-
-      const naveColidiu = rochasAtualizadas.some((rocha) =>
-        checkCollision(estado.nave, rocha)
-      );
-
-      if (naveColidiu) {
-        mostrarGameOver();
-        estadoGlobal.valor = { ...estado, ativo: false };
-        return;
-      }
-
-      const novoPontoTotal = estado.pontos + pontosGanho;
-      atualizarPontuacao(novoPontoTotal);
-
-      estadoGlobal.valor = {
-        ...estado,
-        rochas: rochasAtualizadas,
-        tiros: tirosAtualizados,
-        pontos: novoPontoTotal
-      };
-
-      rochasAtualizadas.forEach((rocha) =>
-        c.drawImage(rochaImg, rocha.x, rocha.y, 50, 50)
-      );
-
-      c.fillStyle = 'red';
-      tirosAtualizados.forEach((tiro) =>
-        c.fillRect(tiro.x, tiro.y, tiro.width, tiro.height)
-      );
+  const atirar = (estado) => {
+    estadoGlobal.valor = {
+      ...estado,
+      tiros: [
+        ...estado.tiros,
+        {
+          x: estado.nave.x + 45,
+          y: estado.nave.y - 20,
+          width: 10,
+          height: 20,
+          speed: 5
+        }
+      ]
     };
-    
-    const checkCollision = (rect1, rect2) =>
-      rect1.x < rect2.x + 50 &&
-      rect1.x + 100 > rect2.x &&
-      rect1.y < rect2.y + 50 &&
-      rect1.y + 100 > rect2.y;
+  };
 
-    const criarRochas = () =>
-      Array.from({ length: 5 }, () => ({
-        x: Math.random() * (width - 50),
-        y: 0
-      }));
+  const animate = () => {
+    const estado = estadoGlobal.valor;
+    if (!estado.ativo) return;
 
-    const estadoGlobal = { valor: null };
+    requestAnimationFrame(animate);
+    c.fillStyle = "black";
+    c.fillRect(0, 0, width, height);
 
-    const verificarColisoes = (tiros, rochas) =>
-      tiros.reduce(
-        ({ tirosAtualizados, rochasAtualizadas, pontosGanho }, tiro) => {
-          const colisaoIndex = rochasAtualizadas.findIndex((rocha) =>
-            checkCollision(tiro, rocha)
-          );
-          if (colisaoIndex !== -1) {
-            const novaRocha = {
-              x: Math.random() * (width - 50),
-              y: 0
-            };
-            return {
-              tirosAtualizados,
-              rochasAtualizadas: rochasAtualizadas.map((r, i) =>
-                i === colisaoIndex ? novaRocha : r
-              ),
-              pontosGanho: pontosGanho + 10
-            };
-          }
-          return {
-            tirosAtualizados: [...tirosAtualizados, tiro],
-            rochasAtualizadas,
-            pontosGanho
-          };
-        },
-        { tirosAtualizados: [], rochasAtualizadas: rochas, pontosGanho: 0 }
-      );
+    c.drawImage(naveImg, estado.nave.x, estado.nave.y, 100, 100);
 
-    const moverNave = (estado, direcao) => {
-      const novoX =
-        direcao === "direita"
-          ? Math.min(estado.nave.x + 40, width - 100)
-          : Math.max(estado.nave.x - 40, 0);
-      estadoGlobal.valor = { ...estado, nave: { ...estado.nave, x: novoX } };
-    };
-
-    window.addEventListener("keydown", function (e) {
-      const estado = estadoGlobal.valor;
-      if (!estado || !estado.ativo) return;
-
-      if (e.key === "ArrowRight") moverNave(estado, "direita");
-      if (e.key === "ArrowLeft") moverNave(estado, "esquerda");
-      if (e.key === " " || e.key === "Spacebar") atirar(estado);
+    const novasRochas = estado.rochas.map((rocha) => {
+      const novaY = rocha.y + 2;
+      return novaY > height
+        ? { x: Math.random() * (width - 50), y: 0 }
+        : { ...rocha, y: novaY };
     });
 
-    document.getElementById("start-btn").addEventListener("click", iniciarJogo);
-    document.getElementById("restart-btn").addEventListener("click", iniciarJogo);
-  </script>
-</body>
-</html>
+    const novosTiros = estado.tiros
+      .map((tiro) => ({ ...tiro, y: tiro.y - tiro.speed }))
+      .filter((tiro) => tiro.y > 0);
+
+    const { tirosAtualizados, rochasAtualizadas, pontosGanho } = verificarColisoes(novosTiros, novasRochas);
+
+    const naveColidiu = rochasAtualizadas.some((rocha) =>
+      checkCollision(estado.nave, rocha)
+    );
+
+    if (naveColidiu) {
+      mostrarGameOver();
+      estadoGlobal.valor = { ...estado, ativo: false };
+      return;
+    }
+
+    const novoPontoTotal = estado.pontos + pontosGanho;
+    atualizarPontuacao(novoPontoTotal);
+
+    estadoGlobal.valor = {
+      ...estado,
+      rochas: rochasAtualizadas,
+      tiros: tirosAtualizados,
+      pontos: novoPontoTotal
+    };
+
+    rochasAtualizadas.forEach((rocha) =>
+      c.drawImage(rochaImg, rocha.x, rocha.y, 50, 50)
+    );
+
+    c.fillStyle = 'red';
+    tirosAtualizados.forEach((tiro) =>
+      c.fillRect(tiro.x, tiro.y, tiro.width, tiro.height)
+    );
+  };
+
+  const checkCollision = (rect1, rect2) =>
+    rect1.x < rect2.x + 50 &&
+    rect1.x + 100 > rect2.x &&
+    rect1.y < rect2.y + 50 &&
+    rect1.y + 100 > rect2.y;
+
+  const criarRochas = () =>
+    Array.from({ length: 5 }, () => ({
+      x: Math.random() * (width - 50),
+      y: 0
+    }));
+
+  const estadoGlobal = { valor: null };
+
+  const verificarColisoes = (tiros, rochas) =>
+    tiros.reduce(
+      ({ tirosAtualizados, rochasAtualizadas, pontosGanho }, tiro) => {
+        const colisaoIndex = rochasAtualizadas.findIndex((rocha) =>
+          checkCollision(tiro, rocha)
+        );
+        if (colisaoIndex !== -1) {
+          const novaRocha = {
+            x: Math.random() * (width - 50),
+            y: 0
+          };
+          return {
+            tirosAtualizados,
+            rochasAtualizadas: rochasAtualizadas.map((r, i) =>
+              i === colisaoIndex ? novaRocha : r
+            ),
+            pontosGanho: pontosGanho + 10
+          };
+        }
+        return {
+          tirosAtualizados: [...tirosAtualizados, tiro],
+          rochasAtualizadas,
+          pontosGanho
+        };
+      },
+      { tirosAtualizados: [], rochasAtualizadas: rochas, pontosGanho: 0 }
+    );
+
+  const moverNave = (estado, direcao) => {
+    const novoX =
+      direcao === "direita"
+        ? Math.min(estado.nave.x + 40, width - 100)
+        : Math.max(estado.nave.x - 40, 0);
+    estadoGlobal.valor = { ...estado, nave: { ...estado.nave, x: novoX } };
+  };
+
+  window.addEventListener("keydown", function (e) {
+    const estado = estadoGlobal.valor;
+    if (!estado || !estado.ativo) return;
+
+    if (e.key === "ArrowRight") moverNave(estado, "direita");
+    if (e.key === "ArrowLeft") moverNave(estado, "esquerda");
+    if (e.key === " " || e.key === "Spacebar") atirar(estado);
+  });
+
+  document.getElementById("start-btn").addEventListener("click", iniciarJogo);
+  document.getElementById("restart-btn").addEventListener("click", iniciarJogo);
+};
+</script>
