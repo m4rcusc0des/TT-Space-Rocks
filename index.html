@@ -55,13 +55,13 @@
   <div id="pontuacao">Pontos: 0</div>
 
   <div id="tela-inicial">
-    <img src="imagens/titulo.png" alt="Título do jogo"/>
-    <img id="start-btn" class="btn" src="imagens/botao.png" alt="Botão Iniciar"/>
+    <img src="./imagens/titulo.png" alt="Título do jogo"/>
+    <img id="start-btn" class="btn" src="./imagens/botao.png" alt="Botão Iniciar"/>
   </div>
 
   <div id="tela-game-over">
-    <img src="imagens/gameover.png" alt="Game Over"/>
-    <img id="restart-btn" class="btn" src="imagens/botao.png" alt="Botão Reiniciar"/>
+    <img src="./imagens/gameover.png" alt="Game Over"/>
+    <img id="restart-btn" class="btn" src="./imagens/botao.png" alt="Botão Reiniciar"/>
   </div>
 
   <canvas></canvas>
@@ -75,9 +75,9 @@
     const c = canvas.getContext('2d');
 
     const naveImg = new Image();
-    naveImg.src = 'imagens/Spaceship-PNG-File.png';
+    naveImg.src = './imagens/Spaceship-PNG-File.png';
     const rochaImg = new Image();
-    rochaImg.src = 'imagens/stone_PNG13556.png';
+    rochaImg.src = './imagens/stone_PNG13556.png';
 
     const atualizarPontuacao = (pontos) =>
       (document.getElementById("pontuacao").innerText = Pontos: ${pontos});
